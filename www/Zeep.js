@@ -13,7 +13,11 @@ function validateConfig(config, mode, callback) {
     }
     if (typeof(config.to) !== 'string' || isNullOrWhitespace(config.to)) {
         return callback('config.to is required and must be a string');
+	}
+	if (typeof(config.password) !== 'string' || isNullOrWhitespace(config.password)) {
+        config.password = null;
     }
+
     if (mode === 'zip') {
     	window.resolveLocalFileSystemURL(config.from, function (result) {
     		if (!result.isDirectory) {
@@ -43,7 +47,7 @@ exports.zip = function (config, successCallback, errorCallback) {
 				if (error) {
 					return errorCallback(error);
 				}
-				exec(successCallback, errorCallback, 'Zeep', 'zip', [config.from, config.to]);
+				exec(successCallback, errorCallback, 'Zeep', 'zip', [config.from, config.to, config.password]);
 			});
 		} catch (error) {
 			errorCallback(error.message);
@@ -58,7 +62,7 @@ exports.unzip = function(config, successCallback, errorCallback) {
 				if (error) {
 					return errorCallback(error);
 				}
-				exec(successCallback, errorCallback, 'Zeep', 'unzip', [config.from, config.to]);
+				exec(successCallback, errorCallback, 'Zeep', 'unzip', [config.from, config.to, config.password]);
 			});
 		} catch (error) {
 			errorCallback(error.message);
