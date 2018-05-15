@@ -1,8 +1,5 @@
 package FiNe;
 
-import java.io.File;
-import java.net.URL;
-
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.json.JSONArray;
@@ -51,8 +48,8 @@ public class Zeep extends CordovaPlugin {
             ZipFile zipFile = new ZipFile(toPath);
             zipFile.addFolder(fromPath, zipParameters);
 
-        } finally {
-
+        } catch (Exception e) {
+            e.getMessage();
         }
     }
 
@@ -69,16 +66,8 @@ public class Zeep extends CordovaPlugin {
 
             zipFile.extractAll(toPath);
 
-        } finally {
-
-        }
-    }
-
-    private static File getFile(String urlOrPath) {
-        try {
-            return new File(new URL(urlOrPath).toURI());
         } catch (Exception e) {
-            return new File(urlOrPath);
+            e.getMessage();
         }
     }
 
