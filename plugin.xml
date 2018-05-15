@@ -32,6 +32,7 @@
                 <param name="android-package" value="FiNe.Zeep" />
             </feature>
         </config-file>
+        <source-file src="src/android/FiNe/zip4j_1.3.2.jar" target-dir="libs" />
         <source-file src="src/android/FiNe/Zeep.java" target-dir="src/FiNe" />
     </platform>
 
@@ -87,28 +88,6 @@
     
         <framework src="libz.dylib" />
     </platform>
-
-	<!--
-	<platform name="wp7">
-		<config-file target="config.xml" parent="/*">
-			<feature name="Zeep">
-				<param name="wp-package" value="Zeep"/>
-			</feature>
-		</config-file>
-		<framework src="src/wp/ICSharpCode.SharpZipLib.dll" custom="true"/>
-		<source-file src="src/wp/Zeep.cs" />
-	</platform>
-
-	<platform name="wp8">
-		<config-file target="config.xml" parent="/*">
-			<feature name="Zeep">
-				<param name="wp-package" value="Zeep"/>
-			</feature>
-		</config-file>
-		<framework src="src/wp/ICSharpCode.SharpZipLib.dll" custom="true"/>
-		<source-file src="src/wp/Zeep.cs" />
-	</platform>
-	-->
 
 	<platform name="windows">
 		<js-module src="src/windows/ZeepProxy.js" name="ZeepProxy">

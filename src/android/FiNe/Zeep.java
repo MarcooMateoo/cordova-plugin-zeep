@@ -9,166 +9,85 @@ import java.net.URL;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.json.JSONArray;
 import org.json.JSONException;
+import android.util.Log;
 
-public class Zeep extends CordovaPlugin
-{
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.util.Zip4jConstants;
+
+
+public class Zeep extends CordovaPlugin {
     private static final int BUFFER_SIZE = 1024;
-    
+
     @Override
-    public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException
-    {
-        try
-        {
-            if (action.equals("zip"))
-            {
-                zip(args.getString(0), args.getString(1));
+    public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+        try {
+            if (action.equals("zip")) {
+                zip(args.getString(0), args.getString(1), args.getString(2));
+            } else {
+                unzip(args.getString(0), args.getString(1), args.getString(2));
             }
-            else
-            {
-                unzip(args.getString(0), args.getString(1));
-            }
-            
-            callbackContext.success();
+
+            callbackContext.success(1);
             return true;
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             callbackContext.error(e.getMessage());
             return false;
         }
     }
-    
-    private void zip(final String from, final String to) throws Exception
-    {
-        ZipOutputStream outStream = null;
-        
-        try
-        {
-            final File fromFile = getFile(from);
-            final File toFile = getFile(to);
-            final byte[] buffer = new byte[BUFFER_SIZE];
-            
-            outStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(toFile)));
-            
-            walk(outStream, fromFile, new WalkListener()
-            {
-                public void onFile(ZipOutputStream outStream, File file) throws Exception
-                {
-                    BufferedInputStream inStream = null;
-                    
-                    try
-                    {
-                        inStream = new BufferedInputStream(new FileInputStream(file), BUFFER_SIZE);
-                        outStream.putNextEntry(new ZipEntry(fromFile.toURI().relativize(file.toURI()).getPath()));
-                        int count;
-                        
-                        while ((count = inStream.read(buffer, 0, BUFFER_SIZE)) != -1)
-                        {
-                            outStream.write(buffer, 0, count);
-                        }
-                    }
-                    finally
-                    {
-                        if (inStream != null)
-                        {
-                            inStream.close();
-                        }
-                    }
-                }
-            });
-        }
-        finally
-        {
-            if (outStream != null)
-            {
-                outStream.close();
+
+    private void zip(String from, String to, String password) throws Exception {
+        try {
+            String baseFileName = from;
+            String destinationZipFilePath = to;
+
+            final ZipParameters zipParameters = new ZipParameters();
+            zipParameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
+            zipParameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_ULTRA);
+            if(password != false){
+                zipParameters.setEncryptFiles(true);
+                zipParameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_AES);
+                zipParameters.setAesKeyStrength(Zip4jConstants.AES_STRENGTH_256);
+                zipParameters.setPassword(password);
             }
+            zipParameters.setIncludeRootFolder(false);
+
+            ZipFile zipFile = new ZipFile(destinationZipFilePath);
+            zipFile.addFolder(baseFileName, zipParameters);
+
+        } finally {
+
         }
     }
-    
-    private void unzip(final String from, final String to) throws Exception
-    {
-        ZipInputStream inStream = null;
-        
-        try
-        {
-            final File fromFile = getFile(from);
-            final File toFile = getFile(to);
-            final byte[] buffer = new byte[BUFFER_SIZE];
-            
-            inStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(fromFile)));
-            
-            ZipEntry entry; while((entry = inStream.getNextEntry()) != null)
-            {
-                BufferedOutputStream outStream = null;
-                
-                try
-                {
-                    File file = new File(toFile, entry.getName());
-                    file.getParentFile().mkdirs();
-                    outStream = new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
-                    int count;
-                    
-                    while ((count = inStream.read(buffer, 0, BUFFER_SIZE)) != -1)
-                    {
-                        outStream.write(buffer, 0, count);
-                    }
-                }
-                finally
-                {
-                    if (outStream != null)
-                    {
-                        outStream.close();
-                    }
-                }
+
+    private void unzip(String from, String to, String password) throws Exception {
+        try {
+
+            ZipFile zipFile = new ZipFile(from);
+
+            if (zipFile.isEncrypted()) {
+                zipFile.setPassword(password);
             }
-        }
-        finally
-        {
-            if (inStream != null)
-            {
-                inStream.close();
-            }
+
+            zipFile.extractAll(to);
+
+        } finally {
+
         }
     }
-    
-    private static void walk(ZipOutputStream outStream, File parentFile, WalkListener listener) throws Exception
-    {
-        File[] files = parentFile.listFiles();
-        if (files != null)
-        {
-            for (File file : files)
-            {
-                if (file.isDirectory())
-                {
-                    walk(outStream, file, listener);
-                }
-                else
-                {
-                    listener.onFile(outStream, file);
-                }
-            }
-        }
-    }
-    
-    private static File getFile(String urlOrPath)
-    {
-        try
-        {
+
+    private static File getFile(String urlOrPath) {
+        try {
             return new File(new URL(urlOrPath).toURI());
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             return new File(urlOrPath);
         }
     }
-    
-    interface WalkListener
-    {
-        void onFile(ZipOutputStream outStream, File file) throws Exception;
-    }
+
 }
