@@ -1,29 +1,19 @@
 package FiNe;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.net.URL;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.json.JSONArray;
 import org.json.JSONException;
-import android.util.Log;
 
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.util.Zip4jConstants;
 
-
 public class Zeep extends CordovaPlugin {
-    private static final int BUFFER_SIZE = 1024;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -44,13 +34,13 @@ public class Zeep extends CordovaPlugin {
 
     private void zip(String from, String to, String password) throws Exception {
         try {
-            String baseFileName = from;
-            String destinationZipFilePath = to;
+            String fromPath = removePathProtocolPrefix(from);
+            String toPath = removePathProtocolPrefix(to);
 
             final ZipParameters zipParameters = new ZipParameters();
             zipParameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
-            zipParameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_ULTRA);
-            if(password != false){
+            zipParameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_MAXIMUM);
+            if (password != null && !password.isEmpty()) {
                 zipParameters.setEncryptFiles(true);
                 zipParameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_AES);
                 zipParameters.setAesKeyStrength(Zip4jConstants.AES_STRENGTH_256);
@@ -58,8 +48,8 @@ public class Zeep extends CordovaPlugin {
             }
             zipParameters.setIncludeRootFolder(false);
 
-            ZipFile zipFile = new ZipFile(destinationZipFilePath);
-            zipFile.addFolder(baseFileName, zipParameters);
+            ZipFile zipFile = new ZipFile(toPath);
+            zipFile.addFolder(fromPath, zipParameters);
 
         } finally {
 
@@ -69,13 +59,15 @@ public class Zeep extends CordovaPlugin {
     private void unzip(String from, String to, String password) throws Exception {
         try {
 
-            ZipFile zipFile = new ZipFile(from);
+            String fromPath = removePathProtocolPrefix(from);
+            String toPath = removePathProtocolPrefix(to);
 
-            if (zipFile.isEncrypted()) {
+            ZipFile zipFile = new ZipFile(fromPath);
+            if (password != null && !password.isEmpty() && zipFile.isEncrypted()) {
                 zipFile.setPassword(password);
             }
 
-            zipFile.extractAll(to);
+            zipFile.extractAll(toPath);
 
         } finally {
 
@@ -88,6 +80,18 @@ public class Zeep extends CordovaPlugin {
         } catch (Exception e) {
             return new File(urlOrPath);
         }
+    }
+
+    private static String removePathProtocolPrefix(String path) {
+
+        if (path.startsWith("file://")) {
+            path = path.substring(7);
+        } else if (path.startsWith("file:")) {
+            path = path.substring(5);
+        }
+
+        return path.replaceAll("//", "/");
+
     }
 
 }
