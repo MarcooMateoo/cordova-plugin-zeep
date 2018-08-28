@@ -15,7 +15,7 @@ function validateConfig(config, mode, callback) {
         return callback('config.to is required and must be a string');
     }
     if (typeof(config.password) !== 'string' || isNullOrWhitespace(config.password)) {
-        config.password = null;
+        config.password = '';
     }
 
     if (mode === 'zip') {
