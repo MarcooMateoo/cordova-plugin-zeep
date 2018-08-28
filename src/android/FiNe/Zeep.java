@@ -37,7 +37,7 @@ public class Zeep extends CordovaPlugin {
             final ZipParameters zipParameters = new ZipParameters();
             zipParameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
             zipParameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_MAXIMUM);
-            if (password != null && !password.isEmpty()) {
+            if (!password.isEmpty()) {
                 zipParameters.setEncryptFiles(true);
                 zipParameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_AES);
                 zipParameters.setAesKeyStrength(Zip4jConstants.AES_STRENGTH_256);
@@ -60,7 +60,7 @@ public class Zeep extends CordovaPlugin {
             String toPath = removePathProtocolPrefix(to);
 
             ZipFile zipFile = new ZipFile(fromPath);
-            if (password != null && !password.isEmpty() && zipFile.isEncrypted()) {
+            if (!password.isEmpty() && zipFile.isEncrypted()) {
                 zipFile.setPassword(password);
             }
 
